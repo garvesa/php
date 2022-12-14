@@ -12,10 +12,10 @@
     <h2>Compra de Productos</h2>
     <form method='post' action="<?php echo $_SERVER['PHP_SELF']; ?>">
         <?php
-        include("functions.php");
+        include("funcionescompras.php");
         $conn = connection();
-        $products = mostrarProducto($conn);
-        $productos = mostrarProducto($conn);
+        $products = addProduct($conn);
+        $productos = addProduct($conn);
         ?>
         <label for="name">DNI Clientes</label>
         <input type="text" name="dni">
