@@ -418,6 +418,19 @@ function test_input($data)
 
     return $data;
 }
+function getNamesOfProduct($conn)
+{
+    try {
+        $sql = $conn->prepare("SELECT ID_PRODUCTO,NOMBRE FROM PRODUCTO");
+        $sql->execute();
+        $sql->setFetchMode(PDO::FETCH_ASSOC);
+        $resultado = $sql->fetchAll();
+
+        return $resultado;
+    } catch (PDOException $e) {
+        return [];
+    }
+}
 
 
 ?>
