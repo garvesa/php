@@ -14,8 +14,8 @@
         <?php
         include("funcionescompras.php");
         $conn = connection();
-        $products = addProduct($conn);
-        $productos = addProduct($conn);
+        $products = getNamesOfProduct($conn);
+        $productos = getNamesOfProduct($conn);
         ?>
         <label for="name">DNI Clientes</label>
         <input type="text" name="dni">
