@@ -256,6 +256,54 @@ function altaproAlmacen($conn){
         echo "Error: " . $e->getMessage();
     }
 }
+//------------------------------------------------------------------------------------------
+function ValidoDni($nif)
+{
+    test_input($nif);
+    $valido = true;
+    $letra = substr($nif, 8);
+    $numeros = substr($nif, 0, 7);
+    if (strlen($nif) > 9 || strlen($nif) < 9) {
+        echo "Error. La longitud no es la correcta. No es posible dar de alta</br>";
+        $valido = false;
+    } else if (!ctype_alpha($letra)) {
+        echo "Error, el último carácter debe de ser una letra</br>";
+        $valido = false;
+    } else if (!is_numeric($numeros)) {
+        echo "Error, debe de ser 8 digitos.</br>";
+        $valido = false;
+    }
+    return $valido;
+}
+
+//-------------------------------------------------------------------------------------------
+function anadirCliente($conn, $nif, $nombre, $apellido, $cp, $direc, $ciu)
+{
+    try {
+        test_input($nif);
+        test_input($nombre);
+        test_input($apellido);
+        test_input($cp);
+        test_input($direc);
+        test_input($ciu);
+        $sql = $conn->prepare("INSERT INTO CLIENTE (NIF,NOMBRE,APELLIDO,CP,DIRECCION,CIUDAD) VALUES (:nif,:nombre,:apellido,:cp,
+    :direccion,:ciudad)");
+        $sql->bindParam('nif', $nif);
+        $sql->bindParam('nombre', $nombre);
+        $sql->bindParam('apellido', $apellido);
+        $sql->bindParam('cp', $cp);
+        $sql->bindParam('direccion', $direc);
+        $sql->bindParam('ciudad', $ciu);
+        $sql->execute();
+        echo "Se ha dado de alta al cliente</br>";
+    } catch (PDOException $e) {
+        $error = $e->getCode();
+        if ($error = '2300') {
+            echo "DNI EXISTENTE. NO SE PUEDE DAR DE ALTA <BR>";
+        }
+        //echo "<br>Error: " . $e->getMessage();  
+    }
+}
 
 
 ?>
