@@ -304,6 +304,120 @@ function anadirCliente($conn, $nif, $nombre, $apellido, $cp, $direc, $ciu)
         //echo "<br>Error: " . $e->getMessage();  
     }
 }
+//999999------------------------------------------------------------------------------
+// siempre que haya disponibilidad del mismo.
+function isDniClient($conn,$dni){
+    $valid=true;
+    test_input($dni);
+    $sql = $conn->prepare("SELECT COUNT(NIF) FROM CLIENTE WHERE CLIENTE.NIF=:dni");
+    $sql->bindParam('dni', $dni);
+    $sql->execute();
+    $sql->setFetchMode(PDO::FETCH_NUM);
+    $resultado = $sql->fetchAll();
+    //var_dump($resultado);
+    $resultado= $resultado[0][0];
+    if($resultado <= 0){
+        $valid=false;
+    }
+return $valid;
+    // mysql_num_rows
+}
+function buyProduct($conn, $nif, $producto, $cantidad)
+{
+    $valido=true;
+    try {
+        
+        test_input($cantidad);
+        $fecha = new DateTime();
+        $stringFecha = $fecha->format("Y-m-d");
+        $sql = $conn->prepare("INSERT INTO COMPRA (NIF,ID_PRODUCTO,FECHA_COMPRA,UNIDADES) VALUES (:nif,:idproducto,:fecha,:unidades)");
+        $sql->bindParam('nif', $nif);
+        $sql->bindParam('idproducto', $producto);
+        $sql->bindParam('fecha', $stringFecha);
+        $sql->bindParam('unidades', $cantidad);
+        $sql->execute();
+        echo "Se ha realizado su compra satisfactoriamente</br>";
+    } catch (PDOException $e) {
+        $valido=false;
+        $error = $e->getCode();
+        if ($error = '2300') {
+            echo "ESTE DNI YA HA REALIZADO COMPRA <BR>";
+        }
+    }
+    return $valido;
+}
+//------------------------------------------------------------
+function isAvailable($conn, $producto, $cantidad)
+{
+    test_input($cantidad);
+    $valid = true;
+    $result = getTotalProducts($conn, $producto);
+    foreach ($result as $resultado => $value) {
+        $quantity = $value['CANTIDAD'];
+    }
+    if ($quantity <= 0 || !is_numeric($cantidad)) {
+        $valid = false;
+        echo "Por favor introduzca una cantidad correcta</br>";
+    } else if ($cantidad > $quantity) {
+        $valid = false;
+        echo "No hay existencias suficientes</br>";
+    }
+    return $valid;
+}
+//----------------------------------------------------
+function getTotalProducts($conn, $product)
+{
+    try {
+        test_input($product);
+        $sql = $conn->prepare("SELECT CANTIDAD,LOCALIDAD 
+                            FROM PRODUCTO,ALMACENA,ALMACEN 
+                            WHERE ALMACENA.ID_PRODUCTO=PRODUCTO.ID_PRODUCTO 
+                            AND ALMACENA.NUM_ALMACEN=ALMACEN.NUM_ALMACEN 
+                            AND PRODUCTO.ID_PRODUCTO=:producto");
+        $sql->bindParam('producto', $product);
+        $sql->execute();
+        $sql->setFetchMode(PDO::FETCH_ASSOC);
+        $resultado = $sql->fetchAll();
+        //echo "<pre>";var_dump($resultado);echo "</pre>";
+        return $resultado;
+    } catch (PDOException $e) {
+        echo "<br>Error: " . $e->getMessage();
+    }
+}
+
+//----------------------------------------------------------
+function updateTableAlmacena($conn, $producto, $cantidad)
+{
+    try {
+        test_input($cantidad);
+        //$cantidad_nueva=
+        $stmt = $conn->prepare("SELECT CANTIDAD FROM ALMACENA WHERE ALMACENA.ID_PRODUCTO=:producto ");
+        $stmt->bindparam('producto', $producto);
+        $stmt->execute();
+        $stmt->setFetchMode(PDO::FETCH_NUM);
+        $resultado = $stmt->fetchAll();
+        //var_dump($resultado);
+        $quantity = $resultado[0][0];
+        //echo $quantity;
+        $new_quantity = intval($quantity - $cantidad);
+        $stmt2 = $conn->prepare("UPDATE ALMACENA  SET CANTIDAD=:new_quantity WHERE ALMACENA.ID_PRODUCTO=:producto");
+        $stmt2->bindparam('new_quantity', $new_quantity);
+        $stmt2->bindparam('producto', $producto);
+        $stmt2->execute();
+        echo "Actualizado tabla Almacena con nueva cantidad";
+    } catch (PDOException $e) {
+        echo "<br>Error: " . $e->getMessage();
+    }
+}
+//funcion para tratar los datos
+function test_input($data)
+{
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data);
+
+    return $data;
+}
 
 
 ?>
